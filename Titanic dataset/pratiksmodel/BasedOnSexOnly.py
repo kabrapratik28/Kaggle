@@ -35,3 +35,9 @@ predication = clf.predict(test[['Sex']].values)
 print metrics.accuracy_score(predication, gtest['Survived'].values)
 
 print metrics.accuracy_score(predication, gctest['Survived'].values)
+
+#print csv logic
+test['predcations'] = predication
+answer = test[['PassengerId','predcations']]
+
+answer.to_csv('model1.csv',cols=['PassengerId','predcations'],index=False)
