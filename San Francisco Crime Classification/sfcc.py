@@ -7,7 +7,7 @@ Created on Sat Dec 26 12:37:40 2015
 import pandas as pd
 from sklearn import preprocessing
 from sklearn.neighbors import KNeighborsClassifier
-
+import csv
 #read sfcc train set
 train = pd.read_csv('train.csv')
 
@@ -89,5 +89,35 @@ trained by hour, pddistrict and day of week.
 neigh = KNeighborsClassifier(n_neighbors=100, weights='uniform', algorithm='auto', leaf_size=100, p=10, metric='minkowski')
 
 neigh.fit(train[['Hour','DayEncoded','PdDistrictEncoded']].values,train['CategoryEncoded'].values)
-
+print '---'
 answer = neigh.predict(test[['Hour','DayEncoded','PdDistrictEncoded']].values)
+print '...'
+answer = le.inverse_transform(answer)
+
+clms = ["Id",'ARSON','ASSAULT','BAD CHECKS','BRIBERY','BURGLARY','DISORDERLY CONDUCT',
+   'DRIVING UNDER THE INFLUENCE','DRUG/NARCOTIC','DRUNKENNESS','EMBEZZLEMENT','EXTORTION',
+   'FAMILY OFFENSES','FORGERY/COUNTERFEITING','FRAUD','GAMBLING','KIDNAPPING','LARCENY/THEFT',
+   'LIQUOR LAWS','LOITERING','MISSING PERSON','NON-CRIMINAL','OTHER OFFENSES',
+   'PORNOGRAPHY/OBSCENE MAT','PROSTITUTION','RECOVERED VEHICLE','ROBBERY','RUNAWAY',
+   'SECONDARY CODES','SEX OFFENSES FORCIBLE','SEX OFFENSES NON FORCIBLE','STOLEN PROPERTY',
+   'SUICIDE','SUSPICIOUS OCC','TREA','TRESPASS','VANDALISM','VEHICLE THEFT','WARRANTS',
+   'WEAPON LAWS']
+ans_clm= tuple(clms)
+
+#answer writing logic
+lenOfAns = len(ans_clm) -1
+
+myfile = open('mymodel.csv', 'wb')
+wr = csv.writer(myfile)
+wr.writerow(clms)
+
+#df = pd.DataFrame(columns=ans_clm)
+for i in range(len(answer)):
+    typeOfCrime = answer[i]
+    indexOfCrime = ans_clm.index(typeOfCrime)
+    listOfans = [0,]* (indexOfCrime-1) + [1,]+ ( lenOfAns -(indexOfCrime))* [0,]      
+    #df.loc[i] =[i,] + listOfans
+    wr.writerow([i,] + listOfans)
+
+#answer.to_csv('model.csv',cols=clms,index=False) 
+print 'Done!'   
