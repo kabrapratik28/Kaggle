@@ -135,20 +135,19 @@ features_to_be_considered = severity_f + event_f + log_f + resource_f
 X_train, X_test, Y_train,Y_test = train_test_split(dataset_train[features_to_be_considered],dataset_train['fault_severity'], train_size=0.75)
 
 #===================== Algorithm to apply related ===============================
-model = RandomForestClassifier(50)
+model = RandomForestClassifier(100)
 model.fit(X_train.values,Y_train.values)
 
 output = model.predict(X_test.values)
 print accuracy_score(Y_test,output)
 
 #====================== model to apply on actual test data =======================
-'''
+
 model.fit(dataset_train[features_to_be_considered].values,dataset_train['fault_severity'].values)
-outputFinal = model.predict(dataset_test[features_to_be_considered].values) 
-outputFinalFrame = pd.DataFrame({'id': dataset_test['id'],'output':outputFinal})
+outputFinal = model.predict_proba(dataset_test[features_to_be_considered].values) 
+outputFinalFrame = pd.DataFrame({'id': dataset_test['id']})
 for j in range(3):
-    outputFinalFrame['predict_'+str(j)] = outputFinalFrame["output"].apply(lambda x : 1 if j == x else 0) 
-outputFinalFrame.drop(['output'],axis=1,inplace=True)
+    outputFinalFrame['predict_'+str(j)] = outputFinal[:,j]
+
 outputFinalFrame.set_index('id',inplace=True)
 outputFinalFrame.to_csv("output.csv")
-'''
