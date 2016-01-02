@@ -160,4 +160,12 @@ https://github.com/dmlc/xgboost/blob/master/demo/guide-python/sklearn_examples.p
 
 ***PARAMETER TUNNING
 https://github.com/dmlc/xgboost/blob/master/demo/guide-python/sklearn_examples.py#L51
+
+Use deep learning using  
+Lasagne and Theano
+(Lasagne is a lightweight library to build and train neural networks in Theano)
+http://blog.kaggle.com/2015/06/09/otto-product-classification-winners-interview-2nd-place-alexander-guschin/
+https://www.kaggle.com/c/otto-group-product-classification-challenge/forums/t/14335/1st-place-winner-solution-gilberto-titericz-stanislav-semenov
+    |
+    |_> https://kaggle2.blob.core.windows.net/forum-message-attachments/79598/2514/FINAL_ARCHITECTURE.png?sv=2012-02-12&se=2016-01-05T09%3A20%3A50Z&sr=b&sp=r&sig=837azHavE9PLc9h0hrTKtvZ3cdB1AQ4yCElKuAV0MTc%3D
 '''
