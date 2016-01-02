@@ -151,3 +151,13 @@ for j in range(3):
 
 outputFinalFrame.set_index('id',inplace=True)
 outputFinalFrame.to_csv("output.csv")
+
+
+##things to do
+'''
+use KFold
+https://github.com/dmlc/xgboost/blob/master/demo/guide-python/sklearn_examples.py#L22
+
+***PARAMETER TUNNING
+https://github.com/dmlc/xgboost/blob/master/demo/guide-python/sklearn_examples.py#L51
+'''
