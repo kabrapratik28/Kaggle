@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
-from sklearn.cross_validation import train_test_split
+from sklearn.cross_validation import train_test_split, KFold, StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+import xgboost as xgb
 
 event_type = pd.read_csv('event_type.csv')
 log_feature = pd.read_csv('log_feature.csv')
@@ -131,18 +132,55 @@ for r in range(1,11):
 
 features_to_be_considered = severity_f + event_f + log_f + resource_f
 
+dataset_train_sel_fea = dataset_train[features_to_be_considered]
+dataset_train_sel_fea_val = dataset_train_sel_fea.values
+dataset_train_ans = dataset_train['fault_severity']
+dataset_train_ans_val = dataset_train_ans.values
+
+#===================== XGBOOST related settings ===============================
+# setup parameters for xgboost
+param = {}
+# use softmax multi-class classification
+param['objective'] = 'multi:softprob'
+# scale weight of positive examples
+#param['eta'] = 0.1
+param['max_depth'] = 500
+#param['silent'] = 1   ##setiing this will not print msgs.
+param['nthread'] = 4
+param['num_class'] = 3  # number of classes
+#param['eval_metric'] = 'mlogloss'
+num_round = 50
 #===================== split data for train and test related ===============================
-X_train, X_test, Y_train,Y_test = train_test_split(dataset_train[features_to_be_considered],dataset_train['fault_severity'], train_size=0.75)
 
-#===================== Algorithm to apply related ===============================
-model = RandomForestClassifier(100)
-model.fit(X_train.values,Y_train.values)
+#train test split
+#X_train, X_test, Y_train,Y_test = train_test_split(dataset_train_sel_fea,dataset_train_ans, train_size=0.75)
 
-output = model.predict(X_test.values)
-print accuracy_score(Y_test,output)
+#=== stratified split
+skf = StratifiedKFold(dataset_train_ans.values, n_folds=5) #chnage fold size to +/- train test.
+for train_index, test_index in skf:
+    X_train, X_test = dataset_train_sel_fea_val[train_index], dataset_train_sel_fea_val[test_index]
+    Y_train, Y_test = dataset_train_ans_val[train_index], dataset_train_ans_val[test_index]
+
+    #===================== Algorithm to apply related ===============================
+    #Random forest classifier
+    
+    model = RandomForestClassifier(100)
+    model.fit(X_train,Y_train)
+
+    output = model.predict(X_test)
+    print "RFC"
+    print accuracy_score(Y_test,output)
+    
+    #xgb 
+    xg_train = xgb.DMatrix( X_train, label=Y_train)
+    xg_test = xgb.DMatrix(X_test, label=Y_test)
+    watchlist = [ (xg_train,'train'), (xg_test, 'test') ]
+    
+    bst = xgb.train(param, xg_train, num_round, watchlist )    
+    
 
 #====================== model to apply on actual test data =======================
-
+'''
 model.fit(dataset_train[features_to_be_considered].values,dataset_train['fault_severity'].values)
 outputFinal = model.predict_proba(dataset_test[features_to_be_considered].values) 
 outputFinalFrame = pd.DataFrame({'id': dataset_test['id']})
@@ -153,8 +191,15 @@ outputFinalFrame.set_index('id',inplace=True)
 outputFinalFrame.to_csv("output.csv")
 
 
+xg_train = xgb.DMatrix( dataset_train_sel_fea_val, label=dataset_train_ans_val)
+xg_test = xgb.DMatrix(dataset_test[features_to_be_considered].values)
+bst = xgb.train(param, xg_train, num_round )    
+yprob = bst.predict( xg_test )
+'''
 ##things to do
 '''
+0.Make as much feature as possible 
+
 use KFold
 https://github.com/dmlc/xgboost/blob/master/demo/guide-python/sklearn_examples.py#L22
 
@@ -168,4 +213,8 @@ http://blog.kaggle.com/2015/06/09/otto-product-classification-winners-interview-
 https://www.kaggle.com/c/otto-group-product-classification-challenge/forums/t/14335/1st-place-winner-solution-gilberto-titericz-stanislav-semenov
     |
     |_> https://kaggle2.blob.core.windows.net/forum-message-attachments/79598/2514/FINAL_ARCHITECTURE.png?sv=2012-02-12&se=2016-01-05T09%3A20%3A50Z&sr=b&sp=r&sig=837azHavE9PLc9h0hrTKtvZ3cdB1AQ4yCElKuAV0MTc%3D
+
+Study on this :
+https://www.kaggle.com/tqchen/otto-group-product-classification-challenge/understanding-xgboost-model-on-otto-data/notebook
+
 '''
