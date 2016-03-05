@@ -1,0 +1,13 @@
+num_class,3
+silent,1
+eval_metric,mlogloss
+nthread,4
+min_child_weight,1
+subsample,0.8
+eta,0.1
+early_stopping_rounds,25
+objective,multi:softprob
+colsample_bytree,0.4
+max_depth,15
+gamma,0.4
+no of rounds,78

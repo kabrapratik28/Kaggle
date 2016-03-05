@@ -1,0 +1,5 @@
+,index,78
+0,test-mlogloss-mean,0.5513588
+1,test-mlogloss-std,0.016533392494
+2,train-mlogloss-mean,0.3822682
+3,train-mlogloss-std,0.00412295192308

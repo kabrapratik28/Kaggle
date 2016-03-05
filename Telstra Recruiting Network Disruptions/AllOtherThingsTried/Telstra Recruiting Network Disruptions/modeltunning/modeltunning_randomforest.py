@@ -2,20 +2,26 @@ import pandas as pd
 import numpy as np
 from sklearn.cross_validation import train_test_split, KFold, StratifiedKFold
 from sklearn.metrics import accuracy_score
-from sklearn.grid_search import GridSearchCV
-
+from sklearn.grid_search import GridSearchCV, RandomizedSearchCV
+from sklearn.ensemble import RandomForestClassifier, BaggingClassifier 
+from sklearn.metrics import log_loss
+from sklearn.calibration import CalibratedClassifierCV
+from scipy.stats import randint as sp_randint
+from time import time
 #our model and imports
 from models import xgboostmodel
 from models import randomforestclassifier
+from models import KNN
 
-event_type = pd.read_csv('event_type.csv')
-log_feature = pd.read_csv('log_feature.csv')
-resource_type = pd.read_csv('resource_type.csv')
-severity_type = pd.read_csv('severity_type.csv')
+print "reading csv's"
+event_type = pd.read_csv('data/event_type.csv')
+log_feature = pd.read_csv('data/log_feature.csv')
+resource_type = pd.read_csv('data/resource_type.csv')
+severity_type = pd.read_csv('data/severity_type.csv')
 
 #===================== train and test related ===============================
-train = pd.read_csv('train.csv')
-test = pd.read_csv('test.csv')
+train = pd.read_csv('data/train.csv')
+test = pd.read_csv('data/test.csv')
 train['location'] =  train['location'].map(lambda x: int(x.strip('location ')))
 test['location'] =  test['location'].map(lambda x: int(x.strip('location ')))
 
@@ -30,7 +36,7 @@ dataset_train = pd.merge(train, severity_type, on =['id'])
 dataset_test = pd.merge(test, severity_type, on =['id'])
 
 #===================== event type related ===============================
-#>>>>>>>>   derieved
+#>>>>>>>>   derived
 #>>>>>>>>   take total number of events
 event_type['event_type_count'] = 1
 total_no_of_events = event_type.groupby('id').event_type_count.sum()
@@ -136,67 +142,60 @@ for r in range(1,11):
 features_to_be_considered = severity_f + event_f + log_f + resource_f
 
 dataset_train_sel_fea = dataset_train[features_to_be_considered]
+dataset_train_index_val = dataset_train['id'].values
 dataset_train_sel_fea_val = dataset_train_sel_fea.values
 dataset_train_ans = dataset_train['fault_severity']
 dataset_train_ans_val = dataset_train_ans.values
+dataset_train_id_sevarity_Frame = dataset_train[['id','fault_severity']]
 
+dataset_test_sel_fea_val = dataset_test[features_to_be_considered].values
+dataset_test_index_val = dataset_test['id'].values
+
+#====================== Make predication columns in pandas, return data frames =======================
+def makeOutPutFrame(yprob,setOfIds, modelName):
+    outputFinalFrame = pd.DataFrame({'id': setOfIds})
+    for j in range(3):
+        outputFinalFrame['predict_'+str(j)] = yprob[:,j]    
+    #outputFinalFrame.set_index('id',inplace=True)
+    #outputFinalFrame.to_csv("modelName"+".csv")
+    return outputFinalFrame
 
 #train test split
 #X_train, X_test, Y_train,Y_test = train_test_split(dataset_train_sel_fea,dataset_train_ans, train_size=0.75)
 
-#=== stratified split
-skf = StratifiedKFold(dataset_train_ans.values, n_folds=5) #chnage fold size to +/- train test.
-for train_index, test_index in skf:
-    X_train, X_test = dataset_train_sel_fea_val[train_index], dataset_train_sel_fea_val[test_index]
-    Y_train, Y_test = dataset_train_ans_val[train_index], dataset_train_ans_val[test_index]
+#===============================RANDOM SEARCH================================
+# build a classifier
+clf = RandomForestClassifier()
+# specify parameters and distributions to sample from
+param_dist = {"n_estimators":[20,22,25,27,30],
+              "criterion": ["gini", "entropy"],
+              "max_depth": [12,15,20,25,27],
+              "max_features": ["auto","log2"],
+              "min_samples_split": sp_randint(1, 11),
+              "min_samples_leaf": sp_randint(1, 11),
+              "bootstrap": [True, False],
+              }
 
-    #===================== Algorithm to apply related ===============================
-    #Random forest classifier    
-    randomforestclassifier.setTrainTestDataAndCheckModel(X_train,Y_train,X_test,Y_test)
-    '''
-    #XGBOOST
-    xgboostmodel.setTrainTestDataAndCheckModel(X_train,Y_train,X_test,Y_test)
-    '''
-#====================== model to apply on actual test data =======================
-'''
-model.fit(dataset_train[features_to_be_considered].values,dataset_train['fault_severity'].values)
-outputFinal = model.predict_proba(dataset_test[features_to_be_considered].values) 
-outputFinalFrame = pd.DataFrame({'id': dataset_test['id']})
-for j in range(3):
-    outputFinalFrame['predict_'+str(j)] = outputFinal[:,j]
+# run randomized search
+n_iter_search = 10
 
-outputFinalFrame.set_index('id',inplace=True)
-outputFinalFrame.to_csv("output.csv")
+start = time()
+random_search = RandomizedSearchCV(clf, param_distributions=param_dist,
+                                   n_iter=n_iter_search,scoring='log_loss')
+
+random_search.fit(dataset_train_sel_fea_val, dataset_train_ans_val )
+
+print("RandomizedSearchCV took %.2f seconds for %d candidates"
+      " parameter settings." % ((time() - start), n_iter_search))
+
+with open("randomforestbest.txt", "w") as myfile:
+    myfile.write("======random forest=========\n")
+    myfile.write(str(random_search.best_params_)+"\n")
+    myfile.write(str(random_search.best_estimator_)+"\n")
+    myfile.write(str(random_search.best_score_)+"\n")
+    myfile.write("======random forest=========\n")
+myfile.close()
 
 
-yprob = xgboostmodel.setTrainDataAndMakeModel( dataset_train_sel_fea_val, dataset_train_ans_val,dataset_test[features_to_be_considered].values)
-outputFinalFrame = pd.DataFrame({'id': dataset_test['id']})
-for j in range(3):
-    outputFinalFrame['predict_'+str(j)] = yprob[:,j]
+#===============================RANDOM SEARCH================================
 
-outputFinalFrame.set_index('id',inplace=True)
-outputFinalFrame.to_csv("output.csv")
-'''
-##things to do
-'''
-0.Make as much feature as possible 
-
-use KFold
-https://github.com/dmlc/xgboost/blob/master/demo/guide-python/sklearn_examples.py#L22
-
-***PARAMETER TUNNING
-https://github.com/dmlc/xgboost/blob/master/demo/guide-python/sklearn_examples.py#L51
-
-Use deep learning using  
-Lasagne and Theano
-(Lasagne is a lightweight library to build and train neural networks in Theano)
-http://blog.kaggle.com/2015/06/09/otto-product-classification-winners-interview-2nd-place-alexander-guschin/
-https://www.kaggle.com/c/otto-group-product-classification-challenge/forums/t/14335/1st-place-winner-solution-gilberto-titericz-stanislav-semenov
-    |
-    |_> https://kaggle2.blob.core.windows.net/forum-message-attachments/79598/2514/FINAL_ARCHITECTURE.png?sv=2012-02-12&se=2016-01-05T09%3A20%3A50Z&sr=b&sp=r&sig=837azHavE9PLc9h0hrTKtvZ3cdB1AQ4yCElKuAV0MTc%3D
-
-Study on this :
-https://www.kaggle.com/tqchen/otto-group-product-classification-challenge/understanding-xgboost-model-on-otto-data/notebook
-https://github.com/christophebourguignat/notebooks/blob/master/Calibration.ipynb
-https://github.com/christophebourguignat/notebooks/blob/master/Tuning%20Neural%20Networks.ipynb
-'''

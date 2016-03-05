@@ -1,0 +1,5 @@
+======random forest=========
+{'alpha': 125535, 'fit_prior': True}
+MultinomialNB(alpha=125535, class_prior=None, fit_prior=True)
+-0.755432834072
+======random forest=========

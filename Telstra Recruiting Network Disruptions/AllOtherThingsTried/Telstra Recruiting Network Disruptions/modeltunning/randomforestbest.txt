@@ -1,0 +1,10 @@
+======random forest=========
+{'bootstrap': False, 'min_samples_leaf': 1, 'n_estimators': 25, 'min_samples_split': 5, 'criterion': 'gini', 'max_features': 'log2', 'max_depth': 27}
+RandomForestClassifier(bootstrap=False, class_weight=None, criterion='gini',
+            max_depth=27, max_features='log2', max_leaf_nodes=None,
+            min_samples_leaf=1, min_samples_split=5,
+            min_weight_fraction_leaf=0.0, n_estimators=25, n_jobs=1,
+            oob_score=False, random_state=None, verbose=0,
+            warm_start=False)
+-0.58260248938
+======random forest=========

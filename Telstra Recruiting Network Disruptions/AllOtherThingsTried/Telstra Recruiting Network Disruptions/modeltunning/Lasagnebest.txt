@@ -1,0 +1,24 @@
+======random forest=========
+{'dense2_num_units': 600, 'dense1_num_units': 800, 'update_learning_rate': 0.008, 'dropoutf_p': 0.1, 'update': <function nesterov_momentum at 0x0000000021EA7748>, 'dropout_p': 0.1, 'eval_size': 0.1, 'max_epochs': 35, 'dropout2_p': 0.3, 'dense0_num_units': 500}
+NeuralNet(X_tensor_type=None,
+     batch_iterator_test=<nolearn.lasagne.base.BatchIterator object at 0x0000000038A16780>,
+     batch_iterator_train=<nolearn.lasagne.base.BatchIterator object at 0x000000002C758E10>,
+     custom_score=None, dense0_num_units=500, dense1_num_units=800,
+     dense2_num_units=600, dropout2_p=0.3, dropout_p=0.1, dropoutf_p=0.1,
+     input_shape=(None, 453L),
+     layers=[('input', <class 'lasagne.layers.input.InputLayer'>), ('dropoutf', <class 'lasagne.layers.noise.DropoutLayer'>), ('dense0', <class 'lasagne.layers.dense.DenseLayer'>), ('dropout', <class 'lasagne.layers.noise.DropoutLayer'>), ('dense1', <class 'lasagne.layers.dense.DenseLayer'>), ('dropout2', <class 'lasagne.layers.noise.DropoutLayer'>), ('dense2', <class 'lasagne.layers.dense.DenseLayer'>), ('output', <class 'lasagne.layers.dense.DenseLayer'>)],
+     loss=None, max_epochs=35, more_params={},
+     objective=<function objective at 0x00000000226672E8>,
+     objective_loss_function=<function categorical_crossentropy at 0x0000000020ECDAC8>,
+     on_batch_finished=[],
+     on_epoch_finished=[<nolearn.lasagne.handlers.PrintLog instance at 0x000000002AB53B08>, <nolearn.lasagne.handlers.PrintLog instance at 0x000000002AB53FC8>, <nolearn.lasagne.handlers.PrintLog instance at 0x000000002AE23888>],
+     on_training_finished=[],
+     on_training_started=[<nolearn.lasagne.handlers.PrintLayerInfo instance at 0x00000000226B2C08>, <nolearn.lasagne.handlers.PrintLayerInfo instance at 0x00000000226B20C8>, <nolearn.lasagne.handlers.PrintLayerInfo instance at 0x000000002AE23A48>],
+     output_nonlinearity=<function softmax at 0x0000000022ABB0B8>,
+     output_num_units=3, regression=False,
+     train_split=<nolearn.lasagne.base.TrainSplit object at 0x000000002C7EA390>,
+     update=<function nesterov_momentum at 0x0000000021EA7748>,
+     update_learning_rate=0.008, use_label_encoder=False, verbose=1,
+     y_tensor_type=TensorType(int32, vector))
+-0.609002096045
+======random forest=========
